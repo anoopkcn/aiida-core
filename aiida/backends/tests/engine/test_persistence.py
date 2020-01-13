@@ -11,9 +11,10 @@
 import plumpy
 
 from aiida.backends.testbase import AiidaTestCase
-from aiida.backends.tests.utils.processes import DummyProcess
-from aiida.engine.persistence import AiiDAPersister
+from aiida.backends.tests.utils.processes import DummyProcess, DummyWorkChain
 from aiida.engine import Process, run
+from aiida.engine.persistence import AiiDAPersister
+from aiida.engine.processes.workchains.awaitable import Awaitable, AwaitableAction, AwaitableTarget
 
 
 class TestProcess(AiidaTestCase):
@@ -64,3 +65,15 @@ class TestAiiDAPersister(AiidaTestCase):
 
         self.persister.delete_checkpoint(process.pid)
         self.assertEqual(process.node.checkpoint, None)
+
+    def test_awaitables(self):
+        """Test persisting process with `Awaitable`."""
+        process = DummyWorkChain()
+        process.ctx['awaitable'] = Awaitable(
+            pk=1, action=AwaitableAction.ASSIGN, target=AwaitableTarget.PROCESS, outputs=False
+        )
+        bundle_saved = self.persister.save_checkpoint(process)
+        print(bundle_saved)
+        bundle_loaded = self.persister.load_checkpoint(process.node.pk)
+
+        self.assertDictEqual(bundle_saved, bundle_loaded)

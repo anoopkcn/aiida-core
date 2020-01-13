@@ -12,13 +12,26 @@
 import plumpy
 
 from aiida.orm import Data, WorkflowNode, CalcJobNode, Bool
-from aiida.engine import Process
+from aiida.engine import Process, WorkChain
 
 
 class DummyProcess(Process):
     """A Process that does nothing when it runs."""
 
     _node_class = WorkflowNode
+
+    @classmethod
+    def define(cls, spec):
+        super().define(spec)
+        spec.inputs.valid_type = Data
+        spec.outputs.valid_type = Data
+
+    def run(self):
+        pass
+
+
+class DummyWorkChain(WorkChain):
+    """A WorkChain that does nothing when it runs."""
 
     @classmethod
     def define(cls, spec):
